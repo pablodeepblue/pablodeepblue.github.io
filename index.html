@@ -1,542 +1,334 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pablo Ghezzi — Portfolio</title>
+<meta name="description" content="Portfolio of Pablo Ghezzi. [Short description of what you do.]">
 
-  <title>Pablo Ghezzi | Portfolio</title>
-  <meta name="description" content="Portfolio and selected work by Pablo Ghezzi.">
-
-  <style>
+<style>
+  :root {
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --text: #16161a;
+    --muted: #6b6b76;
+    --line: #e6e6e1;
+    --accent: #2f4bff;
+    --radius: 14px;
+    --max: 1080px;
+  }
+  @media (prefers-color-scheme: dark) {
     :root {
-      --background: #ffffff;
-      --text: #242424;
-      --muted: #777777;
-      --link: #3869a8;
-      --line: #e8e8e8;
-      --surface: #f7f7f7;
-      --width: 820px;
+      --bg: #0f0f12;
+      --surface: #17171c;
+      --text: #f2f2f0;
+      --muted: #9a9aa6;
+      --line: #26262d;
+      --accent: #7b8cff;
     }
+  }
 
-    * {
-      box-sizing: border-box;
-    }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
 
-    html {
-      scroll-behavior: smooth;
-    }
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+  section { padding: 96px 0; border-top: 1px solid var(--line); }
+  h2 {
+    font-size: 0.8rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 40px;
+  }
 
-    body {
-      margin: 0;
-      background: var(--background);
-      color: var(--text);
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 16px;
-      line-height: 1.75;
-    }
+  /* NAV */
+  header.nav {
+    position: sticky; top: 0; z-index: 10;
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav .wrap { display: flex; justify-content: space-between; align-items: center; height: 64px; }
+  .logo { font-weight: 700; letter-spacing: -0.01em; }
+  .nav ul { display: flex; gap: 28px; list-style: none; font-size: 0.92rem; color: var(--muted); }
+  .nav ul a:hover { color: var(--text); }
 
-    a {
-      color: var(--link);
-      text-decoration: none;
-    }
+  /* HERO */
+  .hero { padding: 120px 0 104px; border-top: none; }
+  .hero .eyebrow { color: var(--accent); font-weight: 600; font-size: 0.9rem; margin-bottom: 16px; }
+  .hero h1 {
+    font-size: clamp(2.6rem, 7vw, 5rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    max-width: 14ch;
+  }
+  .hero p.lead { margin-top: 24px; max-width: 54ch; color: var(--muted); font-size: 1.15rem; }
+  .cta { margin-top: 36px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 12px 22px; border-radius: 999px;
+    font-weight: 600; font-size: 0.95rem; border: 1px solid var(--text);
+    transition: transform .15s ease, background .15s ease, color .15s ease;
+  }
+  .btn.primary { background: var(--text); color: var(--bg); }
+  .btn:hover { transform: translateY(-2px); }
 
-    a:hover {
-      text-decoration: underline;
-    }
+  /* ABOUT */
+  .about-grid { display: grid; grid-template-columns: 280px 1fr; gap: 56px; align-items: start; }
+  .photo {
+    aspect-ratio: 4/5; border-radius: var(--radius);
+    background: var(--line); display: grid; place-items: center;
+    color: var(--muted); font-size: 0.85rem; overflow: hidden;
+  }
+  .photo img { width: 100%; height: 100%; object-fit: cover; }
+  .about p { margin-bottom: 16px; max-width: 62ch; }
+  .facts { margin-top: 28px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; }
+  .facts div span { display: block; font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .facts div strong { font-size: 1.05rem; }
 
-    .container {
-      width: min(var(--width), calc(100% - 40px));
-      margin: 0 auto;
-    }
+  /* PROJECTS */
+  .projects { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); overflow: hidden;
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 14px 34px rgba(0,0,0,.08); }
+  .card .thumb {
+    aspect-ratio: 16/10; background: var(--line);
+    display: grid; place-items: center; color: var(--muted); font-size: 0.85rem;
+  }
+  .card .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .card .body { padding: 20px 22px 24px; }
+  .card h3 { font-size: 1.1rem; letter-spacing: -0.01em; }
+  .card p { color: var(--muted); font-size: 0.95rem; margin-top: 6px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .tag {
+    font-size: 0.75rem; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--muted);
+  }
+  .card .link { display: inline-block; margin-top: 16px; font-size: 0.9rem; font-weight: 600; color: var(--accent); }
 
-    /* Navigation */
+  /* SKILLS */
+  .skills { display: flex; flex-wrap: wrap; gap: 10px; }
+  .skills .tag { font-size: 0.9rem; padding: 7px 16px; color: var(--text); }
 
-    nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 24px 0;
-      border-bottom: 1px solid var(--line);
-      font-size: 14px;
-    }
+  /* EXPERIENCE */
+  .timeline { display: grid; gap: 32px; }
+  .job { display: grid; grid-template-columns: 180px 1fr; gap: 32px; }
+  .job .when { color: var(--muted); font-size: 0.92rem; }
+  .job h3 { font-size: 1.05rem; }
+  .job .org { color: var(--muted); font-size: 0.95rem; }
+  .job p { margin-top: 8px; max-width: 62ch; }
 
-    .brand {
-      color: var(--text);
-      font-weight: 700;
-    }
+  /* CONTACT */
+  .contact h3 { font-size: clamp(1.8rem, 4vw, 2.8rem); letter-spacing: -0.02em; max-width: 18ch; line-height: 1.15; }
+  .contact .mail { display: inline-block; margin-top: 24px; font-size: 1.2rem; font-weight: 600; color: var(--accent); }
+  .socials { margin-top: 28px; display: flex; gap: 20px; flex-wrap: wrap; color: var(--muted); font-size: 0.95rem; }
+  .socials a:hover { color: var(--text); }
 
-    .nav-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
+  footer { padding: 32px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.85rem; }
+  footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 
-    .nav-links a {
-      color: var(--muted);
-    }
-
-    /* Hero */
-
-    header {
-      padding: 65px 0 38px;
-      text-align: center;
-    }
-
-    h1 {
-      margin: 0 0 8px;
-      font-size: clamp(34px, 6vw, 48px);
-      line-height: 1.2;
-      letter-spacing: -1.5px;
-    }
-
-    .subtitle {
-      margin: 0;
-      color: var(--muted);
-      font-size: 18px;
-    }
-
-    .intro {
-      max-width: 620px;
-      margin: 20px auto;
-    }
-
-    .social-links {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 16px;
-      margin-top: 22px;
-      font-size: 14px;
-    }
-
-    /* Main visual */
-
-    .hero-image {
-      width: 100%;
-      aspect-ratio: 16 / 8;
-      margin: 10px 0 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--surface);
-      border: 1px solid var(--line);
-      color: var(--muted);
-      text-align: center;
-      overflow: hidden;
-    }
-
-    .hero-image img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .caption {
-      color: var(--muted);
-      font-size: 13px;
-      text-align: center;
-      margin: 0 0 36px;
-    }
-
-    /* Sections */
-
-    section {
-      margin: 50px 0;
-      scroll-margin-top: 20px;
-    }
-
-    h2 {
-      font-size: 25px;
-      line-height: 1.3;
-      letter-spacing: -0.5px;
-      margin: 0 0 18px;
-    }
-
-    h3 {
-      font-size: 18px;
-      line-height: 1.4;
-      margin: 0 0 8px;
-    }
-
-    p {
-      margin: 0 0 16px;
-    }
-
-    .section-note {
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    /* Project entries */
-
-    .project {
-      display: grid;
-      grid-template-columns: 220px 1fr;
-      gap: 24px;
-      padding: 24px 0;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .project:first-of-type {
-      border-top: 1px solid var(--line);
-    }
-
-    .project-image {
-      min-height: 145px;
-      aspect-ratio: 3 / 2;
-      background: var(--surface);
-      border: 1px solid var(--line);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .project-image img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .project-meta {
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 8px;
-    }
-
-    .project-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      font-size: 14px;
-      margin-top: 12px;
-    }
-
-    /* Media */
-
-    .media-placeholder {
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      background: #f2f2f2;
-      border: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: var(--muted);
-      padding: 20px;
-      margin: 20px 0;
-    }
-
-    .media-placeholder iframe,
-    .media-placeholder video {
-      width: 100%;
-      height: 100%;
-      border: 0;
-    }
-
-    /* Lists */
-
-    ul {
-      padding-left: 22px;
-    }
-
-    li {
-      padding-left: 4px;
-      margin-bottom: 8px;
-    }
-
-    /* Footer */
-
-    footer {
-      border-top: 1px solid var(--line);
-      padding: 28px 0 40px;
-      margin-top: 65px;
-      color: var(--muted);
-      font-size: 13px;
-      text-align: center;
-    }
-
-    @media (max-width: 600px) {
-      .container {
-        width: calc(100% - 32px);
-      }
-
-      nav {
-        align-items: flex-start;
-        gap: 14px;
-        flex-direction: column;
-      }
-
-      .nav-links {
-        gap: 14px;
-      }
-
-      header {
-        padding-top: 45px;
-      }
-
-      .project {
-        grid-template-columns: 1fr;
-        gap: 14px;
-      }
-
-      .project-image {
-        min-height: 0;
-      }
-
-      section {
-        margin: 40px 0;
-      }
-    }
-  </style>
+  @media (max-width: 760px) {
+    section { padding: 64px 0; }
+    .hero { padding: 72px 0 64px; }
+    .about-grid { grid-template-columns: 1fr; gap: 32px; }
+    .photo { max-width: 240px; }
+    .job { grid-template-columns: 1fr; gap: 6px; }
+    .nav ul { gap: 16px; font-size: 0.85rem; }
+  }
+</style>
 </head>
 
 <body>
-  <div class="container">
 
-    <!-- NAVIGATION -->
+<!-- ========== NAV ========== -->
+<header class="nav">
+  <div class="wrap">
+    <a href="#top" class="logo">Pablo Ghezzi</a>
     <nav>
-      <a class="brand" href="#">Pablo Ghezzi</a>
-
-      <div class="nav-links">
-        <a href="#about">About</a>
-        <a href="#projects">Projects</a>
-        <a href="#experience">Experience</a>
-        <a href="#contact">Contact</a>
-      </div>
+      <ul>
+        <li><a href="#about">About</a></li>
+        <li><a href="#work">Work</a></li>
+        <li><a href="#experience">Experience</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
     </nav>
-
-    <!-- INTRODUCTION -->
-    <header>
-      <h1>Pablo Ghezzi</h1>
-
-      <p class="subtitle">
-        [Your profession, field, or main area of interest]
-      </p>
-
-      <p class="intro">
-        Welcome to my personal portfolio. I am interested in
-        [your interests, research areas, or professional goals].
-        Here you can explore my projects, work, and ideas.
-      </p>
-
-      <div class="social-links">
-        <a href="https://github.com/">GitHub</a>
-        <a href="https://www.linkedin.com/">LinkedIn</a>
-        <a href="mailto:your@email.com">Email</a>
-        <a href="#">CV / Resume</a>
-      </div>
-    </header>
-
-    <!-- MAIN IMAGE -->
-    <div class="hero-image">
-      <!-- Replace this placeholder with an image -->
-      <span>[Main image, project photo, or personal photograph]</span>
-    </div>
-
-    <p class="caption">
-      [A short caption describing the image above.]
-    </p>
-
-    <!-- ABOUT -->
-    <section id="about">
-      <h2>About</h2>
-
-      <p>
-        [Write a short biography here. Introduce yourself, your
-        background, what you do, and what motivates your work.]
-      </p>
-
-      <p>
-        [Add another paragraph describing your interests, skills,
-        academic background, or future goals.]
-      </p>
-    </section>
-
-    <!-- FEATURED WORK -->
-    <section id="projects">
-      <h2>Selected Projects</h2>
-
-      <p class="section-note">
-        A selection of projects, experiments, and work.
-      </p>
-
-      <!-- PROJECT 1 -->
-      <article class="project">
-        <div class="project-image">
-          <!-- Example:
-          <img src="images/project-1.jpg" alt="Project 1">
-          -->
-          <span>[Project image]</span>
-        </div>
-
-        <div>
-          <div class="project-meta">
-            [YEAR] · [CATEGORY]
-          </div>
-
-          <h3>[Project Title One]</h3>
-
-          <p>
-            [Describe the project, its purpose, the problem it
-            addresses, and your contribution.]
-          </p>
-
-          <div class="project-links">
-            <a href="#">Project page</a>
-            <a href="#">Paper / Documentation</a>
-            <a href="#">Source code</a>
-          </div>
-        </div>
-      </article>
-
-      <!-- PROJECT 2 -->
-      <article class="project">
-        <div class="project-image">
-          <span>[Project image]</span>
-        </div>
-
-        <div>
-          <div class="project-meta">
-            [YEAR] · [CATEGORY]
-          </div>
-
-          <h3>[Project Title Two]</h3>
-
-          <p>
-            [Add a short explanation of another project, including
-            the tools, methods, or ideas involved.]
-          </p>
-
-          <div class="project-links">
-            <a href="#">Learn more</a>
-            <a href="#">View results</a>
-          </div>
-        </div>
-      </article>
-
-      <!-- PROJECT 3 -->
-      <article class="project">
-        <div class="project-image">
-          <span>[Project image]</span>
-        </div>
-
-        <div>
-          <div class="project-meta">
-            [YEAR] · [CATEGORY]
-          </div>
-
-          <h3>[Project Title Three]</h3>
-
-          <p>
-            [Describe a third project or replace this entry with
-            a publication, personal project, or professional work.]
-          </p>
-
-          <div class="project-links">
-            <a href="#">Project details</a>
-          </div>
-        </div>
-      </article>
-    </section>
-
-    <!-- FEATURED VIDEO OR DEMONSTRATION -->
-    <section id="media">
-      <h2>Featured Work</h2>
-
-      <p>
-        [Introduce a video, demonstration, presentation, or
-        visual overview of your work.]
-      </p>
-
-      <div class="media-placeholder">
-        [Embed a video or add a project demonstration here]
-      </div>
-
-      <!-- To embed a YouTube video, replace the placeholder above:
-      <div class="media-placeholder">
-        <iframe
-          src="https://www.youtube.com/embed/VIDEO_ID"
-          title="Project demonstration"
-          allowfullscreen>
-        </iframe>
-      </div>
-      -->
-    </section>
-
-    <!-- EXPERIENCE -->
-    <section id="experience">
-      <h2>Experience & Education</h2>
-
-      <h3>[Position, Degree, or Program]</h3>
-      <p class="section-note">
-        [Institution or Organization] · [Start Year – End Year]
-      </p>
-      <p>
-        [Describe your responsibilities, achievements, or what
-        you studied.]
-      </p>
-
-      <h3>[Previous Position or Academic Experience]</h3>
-      <p class="section-note">
-        [Institution or Organization] · [Start Year – End Year]
-      </p>
-      <p>
-        [Add another relevant experience or replace this section
-        with awards, publications, or skills.]
-      </p>
-    </section>
-
-    <!-- OPTIONAL SKILLS -->
-    <section id="skills">
-      <h2>Skills & Interests</h2>
-
-      <p>
-        [Skill one] · [Skill two] · [Skill three] · [Skill four]
-      </p>
-
-      <p>
-        <strong>Interests:</strong>
-        [List your research interests, creative interests,
-        professional focus, or areas you want to explore.]
-      </p>
-    </section>
-
-    <!-- CONTACT -->
-    <section id="contact">
-      <h2>Contact</h2>
-
-      <p>
-        Interested in collaborating or learning more about my work?
-        Feel free to get in touch.
-      </p>
-
-      <p>
-        Email: <a href="mailto:your@email.com">your@email.com</a>
-      </p>
-
-      <p>
-        <a href="#">LinkedIn</a> ·
-        <a href="#">GitHub</a> ·
-        <a href="#">Other links</a>
-      </p>
-    </section>
-
-    <!-- FOOTER -->
-    <footer>
-      © <span id="year"></span> Pablo Ghezzi.
-      All rights reserved.
-    </footer>
-
   </div>
+</header>
 
-  <script>
-    document.getElementById("year").textContent =
-      new Date().getFullYear();
-  </script>
+<main id="top">
+
+  <!-- ========== HERO ========== -->
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow">[Your role / title]</p>
+      <h1>[A short, bold headline about what you do.]</h1>
+      <p class="lead">[One or two sentences introducing yourself, what you focus on, and who you help.]</p>
+      <div class="cta">
+        <a class="btn primary" href="#work">View my work</a>
+        <a class="btn" href="#contact">Get in touch</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== ABOUT ========== -->
+  <section id="about">
+    <div class="wrap">
+      <h2>About</h2>
+      <div class="about-grid">
+        <div class="photo">
+          <!-- Replace with: <img src="your-photo.jpg" alt="Pablo Ghezzi"> -->
+          Your photo
+        </div>
+        <div class="about">
+          <p>[Paragraph 1 — who you are and what you do.]</p>
+          <p>[Paragraph 2 — your background, approach, or what drives you.]</p>
+          <p>[Paragraph 3 — what you're looking for or currently working on.]</p>
+          <div class="facts">
+            <div><span>Location</span><strong>[City, Country]</strong></div>
+            <div><span>Experience</span><strong>[X years]</strong></div>
+            <div><span>Status</span><strong>[Open to work / Freelance]</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== WORK / PROJECTS ========== -->
+  <section id="work">
+    <div class="wrap">
+      <h2>Selected Work</h2>
+      <div class="projects">
+
+        <!-- Project card — duplicate this block for more projects -->
+        <article class="card">
+          <div class="thumb">
+            <!-- Replace with: <img src="project-1.jpg" alt="Project 1"> -->
+            Project image
+          </div>
+          <div class="body">
+            <h3>[Project name]</h3>
+            <p>[One-line description of the project and your role.]</p>
+            <div class="tags"><span class="tag">[Tag]</span><span class="tag">[Tag]</span><span class="tag">[Tag]</span></div>
+            <a class="link" href="#">View project →</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="thumb">Project image</div>
+          <div class="body">
+            <h3>[Project name]</h3>
+            <p>[One-line description of the project and your role.]</p>
+            <div class="tags"><span class="tag">[Tag]</span><span class="tag">[Tag]</span></div>
+            <a class="link" href="#">View project →</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="thumb">Project image</div>
+          <div class="body">
+            <h3>[Project name]</h3>
+            <p>[One-line description of the project and your role.]</p>
+            <div class="tags"><span class="tag">[Tag]</span><span class="tag">[Tag]</span></div>
+            <a class="link" href="#">View project →</a>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SKILLS ========== -->
+  <section id="skills">
+    <div class="wrap">
+      <h2>Skills &amp; Tools</h2>
+      <div class="skills">
+        <span class="tag">[Skill]</span>
+        <span class="tag">[Skill]</span>
+        <span class="tag">[Skill]</span>
+        <span class="tag">[Tool]</span>
+        <span class="tag">[Tool]</span>
+        <span class="tag">[Tool]</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== EXPERIENCE ========== -->
+  <section id="experience">
+    <div class="wrap">
+      <h2>Experience</h2>
+      <div class="timeline">
+
+        <!-- Job — duplicate this block for more entries -->
+        <div class="job">
+          <div class="when">[Year] — [Present]</div>
+          <div>
+            <h3>[Job title]</h3>
+            <div class="org">[Company / Institution]</div>
+            <p>[What you did and what you achieved.]</p>
+          </div>
+        </div>
+
+        <div class="job">
+          <div class="when">[Year] — [Year]</div>
+          <div>
+            <h3>[Job title]</h3>
+            <div class="org">[Company / Institution]</div>
+            <p>[What you did and what you achieved.]</p>
+          </div>
+        </div>
+
+        <div class="job">
+          <div class="when">[Year] — [Year]</div>
+          <div>
+            <h3>[Degree / Course]</h3>
+            <div class="org">[School / University]</div>
+            <p>[Optional notes.]</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CONTACT ========== -->
+  <section id="contact" class="contact">
+    <div class="wrap">
+      <h2>Contact</h2>
+      <h3>[Let's work together — a short closing line.]</h3>
+      <a class="mail" href="mailto:your@email.com">your@email.com</a>
+      <div class="socials">
+        <a href="#">LinkedIn</a>
+        <a href="#">GitHub</a>
+        <a href="#">Instagram</a>
+        <a href="#">[Other]</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ========== FOOTER ========== -->
+<footer>
+  <div class="wrap">
+    <span>© <span id="year"></span> Pablo Ghezzi</span>
+    <a href="#top">Back to top ↑</a>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
 </body>
 </html>
