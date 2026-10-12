@@ -1,0 +1,542 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Pablo Ghezzi | Portfolio</title>
+  <meta name="description" content="Portfolio and selected work by Pablo Ghezzi.">
+
+  <style>
+    :root {
+      --background: #ffffff;
+      --text: #242424;
+      --muted: #777777;
+      --link: #3869a8;
+      --line: #e8e8e8;
+      --surface: #f7f7f7;
+      --width: 820px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 16px;
+      line-height: 1.75;
+    }
+
+    a {
+      color: var(--link);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      width: min(var(--width), calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    /* Navigation */
+
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+    }
+
+    .brand {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+    }
+
+    /* Hero */
+
+    header {
+      padding: 65px 0 38px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(34px, 6vw, 48px);
+      line-height: 1.2;
+      letter-spacing: -1.5px;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .intro {
+      max-width: 620px;
+      margin: 20px auto;
+    }
+
+    .social-links {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 22px;
+      font-size: 14px;
+    }
+
+    /* Main visual */
+
+    .hero-image {
+      width: 100%;
+      aspect-ratio: 16 / 8;
+      margin: 10px 0 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .caption {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      margin: 0 0 36px;
+    }
+
+    /* Sections */
+
+    section {
+      margin: 50px 0;
+      scroll-margin-top: 20px;
+    }
+
+    h2 {
+      font-size: 25px;
+      line-height: 1.3;
+      letter-spacing: -0.5px;
+      margin: 0 0 18px;
+    }
+
+    h3 {
+      font-size: 18px;
+      line-height: 1.4;
+      margin: 0 0 8px;
+    }
+
+    p {
+      margin: 0 0 16px;
+    }
+
+    .section-note {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* Project entries */
+
+    .project {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 24px;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .project:first-of-type {
+      border-top: 1px solid var(--line);
+    }
+
+    .project-image {
+      min-height: 145px;
+      aspect-ratio: 3 / 2;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .project-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .project-meta {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .project-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 14px;
+      margin-top: 12px;
+    }
+
+    /* Media */
+
+    .media-placeholder {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #f2f2f2;
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--muted);
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .media-placeholder iframe,
+    .media-placeholder video {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    /* Lists */
+
+    ul {
+      padding-left: 22px;
+    }
+
+    li {
+      padding-left: 4px;
+      margin-bottom: 8px;
+    }
+
+    /* Footer */
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 28px 0 40px;
+      margin-top: 65px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        width: calc(100% - 32px);
+      }
+
+      nav {
+        align-items: flex-start;
+        gap: 14px;
+        flex-direction: column;
+      }
+
+      .nav-links {
+        gap: 14px;
+      }
+
+      header {
+        padding-top: 45px;
+      }
+
+      .project {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      .project-image {
+        min-height: 0;
+      }
+
+      section {
+        margin: 40px 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- NAVIGATION -->
+    <nav>
+      <a class="brand" href="#">Pablo Ghezzi</a>
+
+      <div class="nav-links">
+        <a href="#about">About</a>
+        <a href="#projects">Projects</a>
+        <a href="#experience">Experience</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </nav>
+
+    <!-- INTRODUCTION -->
+    <header>
+      <h1>Pablo Ghezzi</h1>
+
+      <p class="subtitle">
+        [Your profession, field, or main area of interest]
+      </p>
+
+      <p class="intro">
+        Welcome to my personal portfolio. I am interested in
+        [your interests, research areas, or professional goals].
+        Here you can explore my projects, work, and ideas.
+      </p>
+
+      <div class="social-links">
+        <a href="https://github.com/">GitHub</a>
+        <a href="https://www.linkedin.com/">LinkedIn</a>
+        <a href="mailto:your@email.com">Email</a>
+        <a href="#">CV / Resume</a>
+      </div>
+    </header>
+
+    <!-- MAIN IMAGE -->
+    <div class="hero-image">
+      <!-- Replace this placeholder with an image -->
+      <span>[Main image, project photo, or personal photograph]</span>
+    </div>
+
+    <p class="caption">
+      [A short caption describing the image above.]
+    </p>
+
+    <!-- ABOUT -->
+    <section id="about">
+      <h2>About</h2>
+
+      <p>
+        [Write a short biography here. Introduce yourself, your
+        background, what you do, and what motivates your work.]
+      </p>
+
+      <p>
+        [Add another paragraph describing your interests, skills,
+        academic background, or future goals.]
+      </p>
+    </section>
+
+    <!-- FEATURED WORK -->
+    <section id="projects">
+      <h2>Selected Projects</h2>
+
+      <p class="section-note">
+        A selection of projects, experiments, and work.
+      </p>
+
+      <!-- PROJECT 1 -->
+      <article class="project">
+        <div class="project-image">
+          <!-- Example:
+          <img src="images/project-1.jpg" alt="Project 1">
+          -->
+          <span>[Project image]</span>
+        </div>
+
+        <div>
+          <div class="project-meta">
+            [YEAR] · [CATEGORY]
+          </div>
+
+          <h3>[Project Title One]</h3>
+
+          <p>
+            [Describe the project, its purpose, the problem it
+            addresses, and your contribution.]
+          </p>
+
+          <div class="project-links">
+            <a href="#">Project page</a>
+            <a href="#">Paper / Documentation</a>
+            <a href="#">Source code</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- PROJECT 2 -->
+      <article class="project">
+        <div class="project-image">
+          <span>[Project image]</span>
+        </div>
+
+        <div>
+          <div class="project-meta">
+            [YEAR] · [CATEGORY]
+          </div>
+
+          <h3>[Project Title Two]</h3>
+
+          <p>
+            [Add a short explanation of another project, including
+            the tools, methods, or ideas involved.]
+          </p>
+
+          <div class="project-links">
+            <a href="#">Learn more</a>
+            <a href="#">View results</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- PROJECT 3 -->
+      <article class="project">
+        <div class="project-image">
+          <span>[Project image]</span>
+        </div>
+
+        <div>
+          <div class="project-meta">
+            [YEAR] · [CATEGORY]
+          </div>
+
+          <h3>[Project Title Three]</h3>
+
+          <p>
+            [Describe a third project or replace this entry with
+            a publication, personal project, or professional work.]
+          </p>
+
+          <div class="project-links">
+            <a href="#">Project details</a>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- FEATURED VIDEO OR DEMONSTRATION -->
+    <section id="media">
+      <h2>Featured Work</h2>
+
+      <p>
+        [Introduce a video, demonstration, presentation, or
+        visual overview of your work.]
+      </p>
+
+      <div class="media-placeholder">
+        [Embed a video or add a project demonstration here]
+      </div>
+
+      <!-- To embed a YouTube video, replace the placeholder above:
+      <div class="media-placeholder">
+        <iframe
+          src="https://www.youtube.com/embed/VIDEO_ID"
+          title="Project demonstration"
+          allowfullscreen>
+        </iframe>
+      </div>
+      -->
+    </section>
+
+    <!-- EXPERIENCE -->
+    <section id="experience">
+      <h2>Experience & Education</h2>
+
+      <h3>[Position, Degree, or Program]</h3>
+      <p class="section-note">
+        [Institution or Organization] · [Start Year – End Year]
+      </p>
+      <p>
+        [Describe your responsibilities, achievements, or what
+        you studied.]
+      </p>
+
+      <h3>[Previous Position or Academic Experience]</h3>
+      <p class="section-note">
+        [Institution or Organization] · [Start Year – End Year]
+      </p>
+      <p>
+        [Add another relevant experience or replace this section
+        with awards, publications, or skills.]
+      </p>
+    </section>
+
+    <!-- OPTIONAL SKILLS -->
+    <section id="skills">
+      <h2>Skills & Interests</h2>
+
+      <p>
+        [Skill one] · [Skill two] · [Skill three] · [Skill four]
+      </p>
+
+      <p>
+        <strong>Interests:</strong>
+        [List your research interests, creative interests,
+        professional focus, or areas you want to explore.]
+      </p>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact">
+      <h2>Contact</h2>
+
+      <p>
+        Interested in collaborating or learning more about my work?
+        Feel free to get in touch.
+      </p>
+
+      <p>
+        Email: <a href="mailto:your@email.com">your@email.com</a>
+      </p>
+
+      <p>
+        <a href="#">LinkedIn</a> ·
+        <a href="#">GitHub</a> ·
+        <a href="#">Other links</a>
+      </p>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      © <span id="year"></span> Pablo Ghezzi.
+      All rights reserved.
+    </footer>
+
+  </div>
+
+  <script>
+    document.getElementById("year").textContent =
+      new Date().getFullYear();
+  </script>
+</body>
+</html>
