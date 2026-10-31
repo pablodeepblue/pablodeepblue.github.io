@@ -1,0 +1,7 @@
+title: Pablo Ghezzi
+description: Robotics, research, and engineering.
+url: "https://pablodeepblue.github.io"
+baseurl: ""
+
+markdown: kramdown
+permalink: /blog/:title/
