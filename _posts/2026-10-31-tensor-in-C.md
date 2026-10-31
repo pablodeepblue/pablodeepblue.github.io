@@ -295,7 +295,7 @@ We check the accuracy before training (it should be around chance, about 10%) an
 
 And that's it. Here is a neural net. Super simple. Most of the hard part of neural nets is just the backprop implementation to learn, but besides that it is just abstracting. Libraries like pytorch make this super easy by allowing you not to worry about backprop or the nitty-gritty.
 
-## 2: Improving the layer
+# Part 2: Improving the layer
 
 If you have ever taken an ML class, you have probably seen this equation:
 
@@ -368,11 +368,11 @@ The backprop is just a refactored form of the original backprop.
 
 If you use the previous test, you get much faster results due to fewer dependencies (there are no longer separate neuron objects and method calls for every single neuron).
 
-## 3: Adding batches/sequences
+# Part 3: Adding batches/sequences
 
 For later parts, it will not be enough to only take one input at a time. We will instead be using batches, a list of input vectors. When we implement this, every input is independent. However, later down the line we will be using this to handle sequential data, which is data where order matters. More on that later.
 
-### Activator
+## Activator
 
 ```py
 def copy_md_list(X):
@@ -407,7 +407,7 @@ class Activator:
         return self.forward(X)
 ```
 
-### Layer
+## Layer
 ```py
 class Layer:
     def __init__(self, input_size, output_size):
@@ -465,7 +465,7 @@ class Layer:
 
 The big change in the layer is the backward pass. Instead of updating the weights after every example, we add up the gradients from the whole batch, average them (the division by `n`), and only then update the weights once. That is also why the input gradients are computed with the old weights: all the examples in the batch must be judged against the same weights.
 
-### Softmax
+## Softmax
 
 ```py
 class Softmax:
@@ -481,7 +481,7 @@ class Softmax:
         return self.forward(X)
 ```
 
-### Neural Net
+## Neural Net
 
 ```py
 class Neural_Net:
