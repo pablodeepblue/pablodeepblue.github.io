@@ -4,4 +4,5 @@ url: "https://pablodeepblue.github.io"
 baseurl: ""
 
 markdown: kramdown
+highlighter: rouge
 permalink: /blog/:title/
