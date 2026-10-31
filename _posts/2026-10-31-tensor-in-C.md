@@ -101,7 +101,7 @@ For now most of the gradient math is easy to calculate (since it's mostly just l
 
 A layer is a stack of neurons. It's as simple as that. By stacking the neurons we can turn the vector-to-number function into a vector-to-vector function. This behavior allows us to stack multiple layers so we can have multiple different neurons learning different things. The output size is equal to the number of neurons stacked.
 
-```Python
+```py
 class Layer:
     def __init__(self, input_size, output_size):
         self.input_size = input_size
@@ -144,7 +144,7 @@ The backprop is pretty simple here as well: just sum all the gradients of the ne
 
 Now we implement the activator. Why here? Well, it may be a consequence of using pytorch too much, but I prefer to have the activator as its own separate "layer". It makes swapping it out easier and I feel it's easier to understand.
 
-```Python
+```py
 def relu(x):
     return max(0, x)
 
@@ -182,7 +182,7 @@ In the actual repo I implemented a bunch, but here I will only be using ReLU, on
 
 Softmax goes at the end of a neural net to turn all the values into probabilities.
 
-```Python
+```py
 def exp(value):
     return 2.718281828459045 ** value
 
@@ -258,7 +258,7 @@ For context, the dataset is handwritten digits (scikit-learn's `load_digits`, wh
 
 The eye func turns an index into a one-hot vector (a binary array (or vector) of N elements (where N is the total number of categories, classes, or vocabulary words) used to represent categorical data) to show that the probability that it is 7, for example, is exactly one, and we want the NN to target this correct value. The argmax func does the opposite: it finds the index of the largest value, which is the digit the network thinks is most likely.
 
-```Python
+```py
 def eye(index, shape):
     return [1 if i == index else 0 for i in range(shape)]
 
@@ -319,7 +319,7 @@ Basically it's the same thing as before, but the benefit of doing it this way is
 
 To this end we will modify the original to use this instead. Each row of the weight matrix is one neuron's weights, and the bias is now one list for the whole layer.
 
-```Python
+```py
 class Layer:
     def __init__(self, input_size, output_size):
         self.weight = [[random.gauss(0, 1)*0.1 for _ in range(input_size)] for _ in range(output_size)]
@@ -374,7 +374,7 @@ For later parts, it will not be enough to only take one input at a time. We will
 
 ### Activator
 
-```Python
+```py
 def copy_md_list(X):
     return [copy_md_list(x) if isinstance(x, list) else x for x in X]
 
@@ -408,7 +408,7 @@ class Activator:
 ```
 
 ### Layer
-```Python
+```py
 class Layer:
     def __init__(self, input_size, output_size):
         self.weight = [[random.gauss(0, 1)*0.1 for _ in range(input_size)] for _ in range(output_size)]
@@ -467,7 +467,7 @@ The big change in the layer is the backward pass. Instead of updating the weight
 
 ### Softmax
 
-```Python
+```py
 class Softmax:
     def forward(self, X):
         out_batch = []
@@ -483,7 +483,7 @@ class Softmax:
 
 ### Neural Net
 
-```Python
+```py
 class Neural_Net:
     def __init__(self, input_size, *hidden_layers, output_size=None, activation_func=None):
         self.last_input_batch = None
@@ -524,7 +524,7 @@ class Neural_Net:
 
 We can now also train in batched mode.
 
-```Python
+```py
 def get_acc(network, X, Y):
     return [argmax(y_) == y for y_, y in zip(network(X), Y)]
 
