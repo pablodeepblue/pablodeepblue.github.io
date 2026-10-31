@@ -1,0 +1,39 @@
+.highlight {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+}
+
+.highlight .c,
+.highlight .c1,
+.highlight .cm {
+    color: #6c7086; /* Comments */
+}
+
+.highlight .k,
+.highlight .kd,
+.highlight .kn {
+    color: #cba6f7; /* Keywords */
+}
+
+.highlight .s,
+.highlight .s1,
+.highlight .s2 {
+    color: #a6e3a1; /* Strings */
+}
+
+.highlight .n,
+.highlight .nf {
+    color: #89b4fa; /* Functions and names */
+}
+
+.highlight .m,
+.highlight .mi {
+    color: #fab387; /* Numbers */
+}
+
+.highlight .o {
+    color: #89dceb; /* Operators */
+}
