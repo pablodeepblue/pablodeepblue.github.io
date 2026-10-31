@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ page.title }} — Pablo Ghezzi</title>
+    <style>
+        body {
+            font-family: Inter, system-ui, sans-serif;
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 30px 24px;
+            line-height: 1.7;
+            background: #fafaf8;
+            color: #16161a;
+        }
+
+        a { color: #2f4bff; }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 60px;
+        }
+
+        article {
+            max-width: 680px;
+            margin: auto;
+        }
+
+        .date { color: #777; }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #0f0f12;
+                color: #f2f2f0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Pablo Ghezzi</a>
+        <a href="/blog/">Blog</a>
+    </nav>
+
+    {{ content }}
+
+</body>
+</html>
