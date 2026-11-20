@@ -551,4 +551,223 @@ In the end we sacrifice some model performance, but we do get benefits in actual
 
 (Finished to here by 10-31-2026)
 
-# 4: Attention (to be done)
+# Part 4: Attention
+
+So far, every vector in a batch has been completely independent. That is useful for images: one image does not need to know anything about the image next to it in the batch. Language is different. The meaning of a word often depends on the words around it. In the sentence "the cat sat because it was tired," the word "it" needs to look back at the earlier words to figure out what it means.
+
+Attention is how a transformer lets each item in a sequence look at other items in that same sequence. Our batch dimension from the last part is now going to become a sequence dimension. Each row is one token (a word, or part of a word) represented as a vector. We will still call the whole thing `X`, but its shape is now:
+
+$$
+X = [\text{sequence length}, \text{vector size}]
+$$
+
+For example, a sequence with 6 tokens where every token has 4 numbers would have shape `[6, 4]`.
+
+We will also pull a few tiny operations out of `Layer` so we can use them directly. `linear` is the same matrix multiplication from the last part, except the bias is optional because attention's final weighted average does not need one.
+
+```py
+def sqrt(value):
+    return value ** 0.5
+
+def dot_product(vector1, vector2):
+    assert len(vector1) == len(vector2)
+    return sum(x * y for x, y in zip(vector1, vector2))
+
+def transpose(matrix):
+    return [list(row) for row in zip(*matrix)]
+
+def linear(input_, weight, bias=None):
+    return [
+        [
+            dot_product(row, vector) + (0 if bias is None else bias[i])
+            for i, row in enumerate(weight)
+        ]
+        for vector in input_
+    ]
+
+def softmax(X):
+    output = []
+    for row in X:
+        values = [exp(value) for value in row]
+        total = sum(values)
+        output.append([value / total for value in values])
+    return output
+```
+
+## Query, Key, and Value
+
+The names here are a little weird at first, but the basic idea is pretty straightforward. Every input vector is projected three different ways:
+
+$$
+Q = XW_Q
+$$
+
+$$
+K = XW_K
+$$
+
+$$
+V = XW_V
+$$
+
+`Q` stands for query, `K` for key, and `V` for value. You can think of the query as what a token is looking for, the key as what a token advertises about itself, and the value as the information it has to give away. `W_Q`, `W_K`, and `W_V` are just three learned layers, like the ones we already made.
+
+For every query, we take a dot product with every key. A larger dot product means the query and key are a better match. Then we divide by $\sqrt{d_k}$, where $d_k$ is the size of the key vector. This keeps the values from getting too large as the vector size grows.
+
+$$
+S = \frac{QK^T}{\sqrt{d_k}}
+$$
+
+The transpose on $K$ is there so every query can be compared with every key. `S` is a square matrix. Row $i$ says how much token $i$ should pay attention to every token in the sequence.
+
+There is one more thing. This is causal attention, which means a token may look at itself and earlier tokens, but never at tokens that come after it. If a language model could see future words while trying to predict the next word, it would be cheating. We enforce this by replacing the upper half of the score matrix with negative infinity. Softmax turns those values into zero.
+
+```py
+def attention_linear(key, query):
+    dk = sqrt(len(key[0]))
+    return [
+        [
+            dot_product(q, k) / dk if j <= i else float('-inf')
+            for j, k in enumerate(key)
+        ]
+        for i, q in enumerate(query)
+    ]
+```
+
+For a sequence of four tokens, the mask looks like this. The `X`s are positions the token is not allowed to see.
+
+$$
+\begin{bmatrix}
+\checkmark & X & X & X \\
+\checkmark & \checkmark & X & X \\
+\checkmark & \checkmark & \checkmark & X \\
+\checkmark & \checkmark & \checkmark & \checkmark
+\end{bmatrix}
+$$
+
+We apply softmax to each row of scores. That makes each row add up to one, so it becomes a list of how much attention each earlier token gets. Finally, we use those attention weights to take a weighted average of the values.
+
+$$
+A = \operatorname{softmax}(S)
+$$
+
+$$
+\operatorname{Attention}(Q, K, V) = AV
+$$
+
+If a row of `A` puts 80% of its weight on one value and 20% on another, its output is mostly the first value with a little of the second mixed in. This is the entire idea of attention: build a new representation for each token from the information in the tokens it decided matters.
+
+## One Head
+
+Here is the forward pass for one attention head. The `Layer` class is the batched layer from the last part. Notice that we use the same `X` for queries, keys, and values. That is called self-attention. Attention can also use different inputs for them, but transformers use self-attention for their main blocks.
+
+```py
+class Head:
+    def __init__(self, input_size, attention_size):
+        self.dk = attention_size
+        self.W_q = Layer(input_size, attention_size)
+        self.W_k = Layer(input_size, attention_size)
+        self.W_v = Layer(input_size, attention_size)
+
+    def forward(self, X):
+        Q = self.W_q(X)
+        K = self.W_k(X)
+        V = self.W_v(X)
+
+        A = softmax(attention_linear(K, Q))
+        output = linear(A, transpose(V))
+
+        self.last_Q = copy_md_list(Q)
+        self.last_K = copy_md_list(K)
+        self.last_A = copy_md_list(A)
+        self.last_V = copy_md_list(V)
+        return output
+
+    def __call__(self, X):
+        return self.forward(X)
+```
+
+`linear(A, transpose(V))` is another matrix multiplication. Each row of `A` contains one token's attention weights, and each row of the result is that token's new vector. We transpose `V` because our small `linear` helper expects the rows of its second argument to be output vectors.
+
+The backward pass is more involved than the previous layers because the output depends on `Q`, `K`, and `V` at once. The important part is still familiar: calculate the gradient for each operation, then pass gradients through the three learned layers. Since all three layers started from the same input, their input gradients must be added together.
+
+```py
+    def backward(self, upstream_gradient_batch, learning_rate):
+        Q, K = self.last_Q, self.last_K
+        A, V = self.last_A, self.last_V
+        sequence_length = len(A)
+        scale = 1.0 / sqrt(self.dk)
+
+        dA = [
+            [sum(upstream_gradient_batch[t][j] * V[s][j]
+                 for j in range(self.dk))
+             for s in range(sequence_length)]
+            for t in range(sequence_length)
+        ]
+        dV = [
+            [sum(A[t][s] * upstream_gradient_batch[t][j]
+                 for t in range(sequence_length))
+             for j in range(self.dk)]
+            for s in range(sequence_length)
+        ]
+
+        dS = []
+        for t in range(sequence_length):
+            row_dot = sum(A[t][s] * dA[t][s]
+                          for s in range(sequence_length))
+            dS.append([
+                A[t][s] * (dA[t][s] - row_dot)
+                for s in range(sequence_length)
+            ])
+
+        dQ = [[scale * sum(dS[t][s] * K[s][j]
+                           for s in range(sequence_length))
+               for j in range(self.dk)]
+              for t in range(sequence_length)]
+        dK = [[scale * sum(dS[t][s] * Q[t][j]
+                           for t in range(sequence_length))
+               for j in range(self.dk)]
+              for s in range(sequence_length)]
+
+        dX_q = self.W_q.backward(dQ, learning_rate)
+        dX_k = self.W_k.backward(dK, learning_rate)
+        dX_v = self.W_v.backward(dV, learning_rate)
+        return sum_2d(dX_q, dX_k, dX_v)
+```
+
+The softmax gradient looks scary, but it is the same general process as before: the gradient tells us how changing each score would change the final error. The mask does not need special backward code. Its forbidden scores became zero after softmax, so no gradient flows through them.
+
+## Multi-Head Attention
+
+One head can learn one kind of relationship. Maybe it learns to look for the subject of a sentence. Another may learn to look for nearby words, punctuation, or previous mentions of the same thing. Rather than hoping one head learns all of those at once, transformers use several heads in parallel.
+
+```py
+class MultiHead:
+    def __init__(self, input_size, num_heads=4,
+                 attention_size=None, output_size=None):
+        if attention_size is None:
+            attention_size = input_size
+        if output_size is None:
+            output_size = input_size
+        self.attention_size = attention_size
+        self.num_heads = num_heads
+        self.heads = [
+            Head(input_size, attention_size)
+            for _ in range(num_heads)
+        ]
+        self.W_o = Layer(num_heads * attention_size, output_size)
+
+    @staticmethod
+    def concat(*batches):
+        return [sum(rows, []) for rows in zip(*batches)]
+
+    def forward(self, X):
+        pre_out = self.concat(*[head(X) for head in self.heads])
+        return self.W_o(pre_out)
+```
+
+Each head gets the same input but has different randomly initialized weights, so training can make them specialize. We join their output vectors together with `concat`, then use one final layer, `W_o`, to mix the heads back into the desired output size.
+
+The backward pass reverses this: first backpropagate through `W_o`, split its gradient into one piece per head, backpropagate each head, then add the input gradients. That is all multi-head attention is: several copies of the same mechanism running beside each other.
+
+At this point we have the main ingredient of a transformer. A full transformer block adds a residual connection, layer normalization, and a small feed-forward neural net around this attention layer. Those additions make deep stacks of blocks train more reliably, but the part that lets tokens share information is the attention mechanism above.
