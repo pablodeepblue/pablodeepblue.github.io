@@ -551,19 +551,49 @@ In the end we sacrifice some model performance, but we do get benefits in actual
 
 (Finished to here by 10-31-2026)
 
-# Part 4: Attention
+# Part 4: Attention & Transformer Block
 
-So far, every vector in a batch has been completely independent. That is useful for images: one image does not need to know anything about the image next to it in the batch. Language is different. The meaning of a word often depends on the words around it. In the sentence "the cat sat because it was tired," the word "it" needs to look back at the earlier words to figure out what it means.
+In the last part, every vector in a batch was independent. That is useful for images: one image does not need to know anything about the image next to it. Language is different. The meaning of a word often depends on the words around it. In the sentence "the cat sat because it was tired," the word "it" needs to look back at the earlier words to figure out what it means.
 
-Attention is how a transformer lets each item in a sequence look at other items in that same sequence. Our batch dimension from the last part is now going to become a sequence dimension. Each row is one token (a word, or part of a word) represented as a vector. We will still call the whole thing `X`, but its shape is now:
+Attention is how a transformer lets a token look at the other tokens in its sequence. The data still looks like the batch from the last part: a list of vectors. We are changing what each row means. Instead of one row being one unrelated example, one row is now one token (a word, or part of a word) in the same piece of text.
+
+We will still call the whole thing `X`, but its shape is now:
 
 $$
 X = [\text{sequence length}, \text{vector size}]
 $$
 
-For example, a sequence with 6 tokens where every token has 4 numbers would have shape `[6, 4]`.
+For example, a sequence with 6 tokens where every token has 4 numbers has shape `[6, 4]`. To keep the implementation small, we handle one sequence at a time here. A production model adds an outer batch dimension so it can process many sequences at once. By the end of this part, every token will have a new vector that includes information from the earlier tokens it chose to pay attention to.
 
-We will also pull a few tiny operations out of `Layer` so we can use them directly. `linear` is the same matrix multiplication from the last part, except the bias is optional because attention's final weighted average does not need one.
+## Query, Key, and Value
+
+We start by giving every token three different versions of itself:
+
+$$
+Q = XW_Q
+$$
+
+$$
+K = XW_K
+$$
+
+$$
+V = XW_V
+$$
+
+`Q` stands for query, `K` for key, and `V` for value. You can think of the query as what a token is looking for, the key as what a token advertises about itself, and the value as the information it has to give away. `W_Q`, `W_K`, and `W_V` are three learned layers, like the ones we already made.
+
+For every query, we take a dot product with every key. A larger dot product means the query and key are a better match. Then we divide by $\sqrt{d_k}$, where $d_k$ is the size of the key vector. This keeps the values from getting too large as the vector size grows.
+
+$$
+S = \frac{QK^T}{\sqrt{d_k}}
+$$
+
+The transpose on $K$ is there so every query can be compared with every key. `S` is a square matrix. Row $i$ says how much token $i$ should pay attention to every token in the sequence.
+
+This is causal attention, which means a token may look at itself and earlier tokens, but never at tokens that come after it. If a language model could see future words while trying to predict the next word, it would be cheating. We enforce this by replacing the upper half of the score matrix with negative infinity. Softmax turns those values into zero.
+
+Before writing that out, we pull a few small operations out of `Layer` so we can call them directly. `linear` is the matrix multiplication from the last part. Its bias is optional because the final weighted average in attention does not need one.
 
 ```py
 def sqrt(value):
@@ -575,6 +605,12 @@ def dot_product(vector1, vector2):
 
 def transpose(matrix):
     return [list(row) for row in zip(*matrix)]
+
+def sum_2d(*matrices):
+    return [
+        [sum(values) for values in zip(*rows)]
+        for rows in zip(*matrices)
+    ]
 
 def linear(input_, weight, bias=None):
     return [
@@ -594,33 +630,7 @@ def softmax(X):
     return output
 ```
 
-## Query, Key, and Value
-
-The names here are a little weird at first, but the basic idea is pretty straightforward. Every input vector is projected three different ways:
-
-$$
-Q = XW_Q
-$$
-
-$$
-K = XW_K
-$$
-
-$$
-V = XW_V
-$$
-
-`Q` stands for query, `K` for key, and `V` for value. You can think of the query as what a token is looking for, the key as what a token advertises about itself, and the value as the information it has to give away. `W_Q`, `W_K`, and `W_V` are just three learned layers, like the ones we already made.
-
-For every query, we take a dot product with every key. A larger dot product means the query and key are a better match. Then we divide by $\sqrt{d_k}$, where $d_k$ is the size of the key vector. This keeps the values from getting too large as the vector size grows.
-
-$$
-S = \frac{QK^T}{\sqrt{d_k}}
-$$
-
-The transpose on $K$ is there so every query can be compared with every key. `S` is a square matrix. Row $i$ says how much token $i$ should pay attention to every token in the sequence.
-
-There is one more thing. This is causal attention, which means a token may look at itself and earlier tokens, but never at tokens that come after it. If a language model could see future words while trying to predict the next word, it would be cheating. We enforce this by replacing the upper half of the score matrix with negative infinity. Softmax turns those values into zero.
+Now we can make the score matrix and apply the causal mask:
 
 ```py
 def attention_linear(key, query):
@@ -771,3 +781,207 @@ Each head gets the same input but has different randomly initialized weights, so
 The backward pass reverses this: first backpropagate through `W_o`, split its gradient into one piece per head, backpropagate each head, then add the input gradients. That is all multi-head attention is: several copies of the same mechanism running beside each other.
 
 At this point we have the main ingredient of a transformer. A full transformer block adds a residual connection, layer normalization, and a small feed-forward neural net around this attention layer. Those additions make deep stacks of blocks train more reliably, but the part that lets tokens share information is the attention mechanism above.
+
+## Transformer Block
+
+We have attention now, but an attention layer by itself is not quite a transformer. A transformer is built by stacking blocks. Each block has an attention section, a small regular neural net, residual connections, and layer normalization. The pattern is repeated over and over, which is why understanding one block gets you most of the way there.
+
+The flow through our block looks like this:
+
+$$
+X \rightarrow \text{Multi-Head Attention} \rightarrow +X \rightarrow \text{LayerNorm} \rightarrow \text{MLP} \rightarrow +X \rightarrow \text{LayerNorm}
+$$
+
+The two additions are residual connections. Instead of making every new layer completely replace its input, we let the input take a shortcut around the layer and add it back at the end. This is useful because a layer can learn a small change to the existing representation instead of needing to recreate everything from scratch. It also gives gradients an easier route backward when many blocks are stacked.
+
+## Layer Normalization
+
+Layer normalization keeps each token's vector from getting too wild as it passes through many layers. For one token vector $x$, we find its mean and variance, then normalize every value:
+
+$$
+\mu = \frac{1}{d}\sum_{i=1}^{d}x_i
+$$
+
+$$
+\sigma^2 = \frac{1}{d}\sum_{i=1}^{d}(x_i - \mu)^2
+$$
+
+$$
+\operatorname{LayerNorm}(x)_i = \gamma_i\frac{x_i - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta_i
+$$
+
+`epsilon` is a tiny number that stops us from dividing by zero. `gamma` and `beta` are learned vectors. At the start, `gamma` is all ones and `beta` is all zeroes, so the layer simply normalizes. Training can later scale and shift each position if that is useful.
+
+```py
+class LayerNorm:
+    def __init__(self, size, epsilon=1e-5):
+        self.size = size
+        self.epsilon = epsilon
+        self.gamma = [1.0] * size
+        self.beta = [0.0] * size
+
+    def forward(self, X):
+        self.last_normalized = []
+        self.last_inverse_std = []
+        output = []
+        for row in X:
+            mean = sum(row) / self.size
+            variance = sum((value - mean) ** 2 for value in row) / self.size
+            inverse_std = 1.0 / sqrt(variance + self.epsilon)
+            normalized = [
+                (value - mean) * inverse_std
+                for value in row
+            ]
+            self.last_normalized.append(normalized)
+            self.last_inverse_std.append(inverse_std)
+            output.append([
+                self.gamma[j] * value + self.beta[j]
+                for j, value in enumerate(normalized)
+            ])
+        return output
+
+    def __call__(self, X):
+        return self.forward(X)
+```
+
+Unlike batch normalization, layer normalization works across the vector size of one token. It does not care how long the sequence is or how many sequences are in a batch. That makes it a good fit for transformers, where sequence lengths can vary.
+
+The backward pass follows the same pattern as the other layers. It computes gradients for `gamma`, `beta`, and the original input vector, then updates `gamma` and `beta` using the average gradient across the sequence.
+
+```py
+    def backward(self, upstream_gradient_batch, learning_rate):
+        gamma_gradient = [0.0] * self.size
+        beta_gradient = [0.0] * self.size
+        input_gradient = []
+
+        for normalized, inverse_std, upstream in zip(
+                self.last_normalized,
+                self.last_inverse_std,
+                upstream_gradient_batch):
+            scaled = [upstream[j] * self.gamma[j]
+                      for j in range(self.size)]
+            mean_gradient = sum(scaled) / self.size
+            normalized_gradient = sum(
+                scaled[j] * normalized[j]
+                for j in range(self.size)
+            ) / self.size
+            input_gradient.append([
+                inverse_std * (
+                    scaled[j] - mean_gradient
+                    - normalized[j] * normalized_gradient
+                )
+                for j in range(self.size)
+            ])
+            for j in range(self.size):
+                gamma_gradient[j] += upstream[j] * normalized[j]
+                beta_gradient[j] += upstream[j]
+
+        count = len(upstream_gradient_batch)
+        for j in range(self.size):
+            self.gamma[j] -= learning_rate * gamma_gradient[j] / count
+            self.beta[j] -= learning_rate * beta_gradient[j] / count
+        return input_gradient
+```
+
+## The Feed-Forward Network
+
+Attention lets tokens exchange information. After that, each token goes through the same small neural net independently. This is usually called the feed-forward network, or MLP. The network is wider in its hidden layer, uses an activator, then returns to the original vector size. This version of `Neural_Net` stops after its last `Layer`; it does not use the final softmax from our digit classifier, because these vectors are not class probabilities.
+
+```py
+self.mlp = Neural_Net(
+    attention_size,
+    4 * attention_size,
+    output_size
+)
+```
+
+This is the same kind of neural net we built earlier. It does not mix tokens together; attention already did that. Applying the same MLP to every row gives the transformer another chance to reshape the information each token collected.
+
+## Putting It Together
+
+Here is the forward pass for the full block. Our code allows the input and output sizes to differ. When they do, the residual path needs a `Layer` to project the input to the right size before we add it.
+
+```py
+class TransformerBlock:
+    def __init__(self, att_input_size, att_output_size,
+                 mlp_output_size, num_heads=4,
+                 feed_forward_size=None):
+        if feed_forward_size is None:
+            feed_forward_size = 4 * att_output_size
+
+        self.attention = MultiHead(
+            att_input_size,
+            num_heads=num_heads,
+            output_size=att_output_size
+        )
+        self.attention_residual = (
+            Layer(att_input_size, att_output_size)
+            if att_input_size != att_output_size else None
+        )
+        self.attention_norm = LayerNorm(att_output_size)
+
+        self.mlp = Neural_Net(
+            att_output_size,
+            feed_forward_size,
+            mlp_output_size
+        )
+        self.mlp_residual = (
+            Layer(att_output_size, mlp_output_size)
+            if att_output_size != mlp_output_size else None
+        )
+        self.mlp_norm = LayerNorm(mlp_output_size)
+
+    def forward(self, X):
+        residual = X if self.attention_residual is None \
+            else self.attention_residual(X)
+        attention_output = self.attention(X)
+        attention_output = [
+            [a + b for a, b in zip(attention_row, residual_row)]
+            for attention_row, residual_row in zip(
+                attention_output, residual
+            )
+        ]
+        normalized_attention = self.attention_norm(attention_output)
+
+        mlp_residual = normalized_attention \
+            if self.mlp_residual is None \
+            else self.mlp_residual(normalized_attention)
+        mlp_output = self.mlp(normalized_attention)
+        output = [
+            [a + b for a, b in zip(mlp_row, residual_row)]
+            for mlp_row, residual_row in zip(mlp_output, mlp_residual)
+        ]
+        return self.mlp_norm(output)
+
+    def __call__(self, X):
+        return self.forward(X)
+```
+
+The exact order here is `attention -> add -> normalize -> MLP -> add -> normalize`. You may see other transformers normalize before attention or the MLP instead. Both arrangements are used; ours is the original post-normalization style and keeps the code easy to follow.
+
+Backpropagation is simply this flow in reverse. The gradient coming out of each addition has to travel down both paths: one copy goes through the main layer and one copy goes down the residual shortcut. When both paths reach the same earlier input, we add their gradients together.
+
+```py
+    def backward(self, upstream_gradient_batch, learning_rate):
+        grad = self.mlp_norm.backward(upstream_gradient_batch, learning_rate)
+        grad_residual = copy_md_list(grad)
+        grad_mlp = self.mlp.backward(grad, learning_rate)
+        grad_mlp_residual = (
+            grad_residual if self.mlp_residual is None
+            else self.mlp_residual.backward(grad_residual, learning_rate)
+        )
+        grad = sum_2d(grad_mlp, grad_mlp_residual)
+
+        grad = self.attention_norm.backward(grad, learning_rate)
+        grad_residual = copy_md_list(grad)
+        grad_attention = self.attention.backward(grad, learning_rate)
+        grad_attention_residual = (
+            grad_residual if self.attention_residual is None
+            else self.attention_residual.backward(
+                grad_residual, learning_rate
+            )
+        )
+        return sum_2d(grad_attention, grad_attention_residual)
+```
+
+That is a transformer block. A GPT-style model is mostly a token embedding layer, positional information, a stack of blocks like this one, and a final layer that turns the last vectors into probabilities for the next token. We have now built the part where the actual context mixing happens.
